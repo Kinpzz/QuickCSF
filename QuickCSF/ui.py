@@ -96,7 +96,8 @@ class QuickCSFWindow(QtWidgets.QMainWindow):
 	def showFinished(self, results):
 		outputDisplay = self.finishedText + '\n'
 		for key,value in results.items():
-			outputDisplay += f'\n{key} = {value:.4f}'
+			if isinstance(value, float):
+				outputDisplay += f'\n{key} = {value:.4f}'
 				
 		self.displayWidget.setText(outputDisplay)
 

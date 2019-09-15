@@ -423,5 +423,6 @@ class QuickCSFEstimator():
 			'peakFrequency': results[1],
 			'bandwidth': results[2],
 			'delta': results[3],
+			'responseHistory': self.responseHistory,
 			'aulcsf': aulcsf(*results)
 		}

@@ -24,6 +24,7 @@ from . import CSFController
 from . import QuickCSF
 from . import StimulusGenerators
 from . import screens
+from . import plot
 
 logger = logging.getLogger('QuickCSF.app')
 
@@ -37,10 +38,17 @@ def _onFinished(results):
 	logger.debug('Writing output file: ' + str(outputFile.resolve()))
 
 	fileExists = outputFile.exists()
+	timeStamp = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+	plotPath = pathlib.Path(settings['plotPath'])
+	if not plotPath.exists():
+		plotPath.mkdir(parents=True)
+	plotFile = plotPath / '{}-{}.png'.format(settings['sessionID'], timeStamp)
+	plot.plotResults(results=results, plotFile=plotFile, responseHistory=results['responseHistory'])
+
 	with outputFile.open('a') as csvFile:
 		record = {
 			'SessionID': settings['sessionID'],
-			'Timestamp': datetime.today().strftime('%Y-%m-%d %H:%M:%S'),
+			'Timestamp': timeStamp,
 			**results
 		}
 
@@ -100,6 +108,7 @@ def getSettings():
 	parser.add_argument('-d', '--distance_mm', type=float, default=None, help='Distance (mm) from the display to the observer')
 	parser.add_argument('--outputFile', default='data/QuickCSF-results.csv', help='The path/file to save results into')
 	parser.add_argument('--instructionsFile', default=None, help='A plaintext file containing the instructions. If unspecified, default instructions will be displayed')
+	parser.add_argument('--plotPath', default='data/figures', help='The path to save resulted CRF curve')
 
 	controllerSettings = parser.add_argument_group('Controller')
 	controllerSettings.add_argument('--trialsPerBlock', type=int, default=25, help='Number of trials in each block')
