@@ -80,12 +80,14 @@ class QuickCSFWindow(QtWidgets.QMainWindow):
 		self.displayWidget.setPixmap(None)
 
 	def giveFeedback(self, good):
-		if good:
-			self.displayWidget.setText('Good!')
-			self.sounds['good'].play()
-		else:
-			self.displayWidget.setText('Wrong')
-			self.sounds['bad'].play()
+		if good is None:
+			self.participantResponse.emit(None)
+		# if good:
+		# 	self.displayWidget.setText('Good!')
+		# 	self.sounds['good'].play()
+		# else:
+		# 	self.displayWidget.setText('Wrong')
+		# 	self.sounds['bad'].play()
 
 	def showResponsePrompt(self):
 		self.displayWidget.setText(self.responseText)
@@ -123,22 +125,8 @@ class QuickCSFWindow(QtWidgets.QMainWindow):
 			self.showFixationCross()
 		elif '_BLANK' in stateName:
 			self.showBlank()
-		elif stateName == 'SHOW_STIMULUS_1':
-			if data.stimulusOnFirst:
-				self.showStimulus(data.stimulus)
-			else:
-				self.showNonStimulus()
-		elif stateName == 'SHOW_MASK_1':
-			self.showMask()
-		elif stateName == 'SHOW_STIMULUS_2':
-			if not data.stimulusOnFirst:
-				self.showStimulus(data.stimulus)
-			else:
-				self.showNonStimulus()
-		elif stateName == 'SHOW_MASK_2':
-			self.showMask()
-		elif stateName == 'WAIT_FOR_RESPONSE':
-			self.showResponsePrompt()
+		elif stateName == 'SHOW_STIMULUS':
+			self.showStimulus(data.stimulus)
 		elif stateName == 'FEEDBACK':
 			self.giveFeedback(data.correct)
 		elif stateName == 'FINISHED':

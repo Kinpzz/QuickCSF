@@ -92,6 +92,7 @@ class Controller_2AFC(QtCore.QObject):
 		stimulusDuration=.1,
 		maskDuration=.1,
 		interStimulusInterval=.1,
+		responseTime=6,
 		feedbackDuration=.5,
 		waitForReady=False,
 		parent=None
@@ -104,7 +105,7 @@ class Controller_2AFC(QtCore.QObject):
 			trialsPerBlock,
 			blockCount
 		)
-		self.stateSpace = self._buildStateSpace(fixationDuration, stimulusDuration, maskDuration, interStimulusInterval, feedbackDuration, waitForReady)
+		self.stateSpace = self._buildStateSpace(fixationDuration, stimulusDuration, maskDuration, interStimulusInterval, responseTime, feedbackDuration, waitForReady)
 		self.state = self.stateSpace['INSTRUCTIONS']
 
 	def _buildTrialBlocks(self, trialsPerBlock, blockCount):
@@ -137,7 +138,7 @@ class Controller_2AFC(QtCore.QObject):
 		random.shuffle(blocks)
 		return blocks
 
-	def _buildStateSpace(self, fixationDuration, stimulusDuration, maskDuration, interStimulusInterval, feedbackDuration, waitForReady):
+	def _buildStateSpace(self, fixationDuration, stimulusDuration, maskDuration, interStimulusInterval, responseTime, feedbackDuration, waitForReady):
 		'''Build states and define their transition edges'''
 
 		states = {
@@ -153,15 +154,10 @@ class Controller_2AFC(QtCore.QObject):
 		states['BREAKING'] = InputState(preTrialState.name)
 		states[preTrialState.name] = preTrialState
 
-		states['FIXATION_CROSS'] = TimedState(fixationDuration, 'INTERSTIMULUS_BLANK_0')
-		states['INTERSTIMULUS_BLANK_0'] = TimedState(interStimulusInterval, 'SHOW_STIMULUS_1')
-		states['SHOW_STIMULUS_1'] = TimedState(stimulusDuration, 'SHOW_MASK_1')
-		states['SHOW_MASK_1'] = TimedState(maskDuration, 'INTERSTIMULUS_BLANK_1')
-		states['INTERSTIMULUS_BLANK_1'] = TimedState(interStimulusInterval, 'SHOW_STIMULUS_2')
-		states['SHOW_STIMULUS_2'] = TimedState(stimulusDuration, 'SHOW_MASK_2')
-		states['SHOW_MASK_2'] = TimedState(maskDuration, 'INTERSTIMULUS_BLANK_2')
-		states['INTERSTIMULUS_BLANK_2'] = TimedState(interStimulusInterval, 'WAIT_FOR_RESPONSE')
-		states['WAIT_FOR_RESPONSE'] = InputState('FEEDBACK')
+		states['FIXATION_CROSS'] = TimedState(fixationDuration, 'INTERSTIMULUS_BLANK')
+		states['INTERSTIMULUS_BLANK'] = TimedState(interStimulusInterval, 'SHOW_STIMULUS')
+		states['SHOW_STIMULUS'] = TimedState(stimulusDuration, 'WAIT_FOR_RESPONSE')
+		states['WAIT_FOR_RESPONSE'] = TimedState(responseTime, 'FEEDBACK')
 		states['FEEDBACK'] = TimedState(feedbackDuration)
 
 		for name,state in states.items():
@@ -216,6 +212,11 @@ class Controller_2AFC(QtCore.QObject):
 			trial.correct = (selectedFirstOption == trial.stimulusOnFirst)
 			self.stimulusGenerator.markResponse(trial.correct)
 			self.state.finished = True
+		# if user does not make a reponse in limited time, the anwser will be regarded as False
+		if self.checkState('FEEDBACK') and selectedFirstOption is None:
+			trial = self.getCurrentTrial()
+			trial.correct = False
+			self.stimulusGenerator.markResponse(trial.correct)
 
 	def _update(self):
 		'''Update the current state, transition to the next state if finished

@@ -118,6 +118,7 @@ def getSettings():
 	controllerSettings.add_argument('--stimulusDuration', type=float, default=.1, help='How long (seconds) the stimulus is displayed')
 	controllerSettings.add_argument('--maskDuration', type=float, default=.1, help='How long (seconds) the stimulus mask is displayed')
 	controllerSettings.add_argument('--interStimulusInterval', type=float, default=.1, help='How long (seconds) a blank is displayed between stimuli')
+	controllerSettings.add_argument('--responseTime', type=float, default=6, help='How long (seconds) the user is allowed to make a response. if not response in reponseTime, the answer will be regarded as False')
 	controllerSettings.add_argument('--feedbackDuration', type=float, default=.5, help='How long (seconds) feedback is displayed')
 
 	controllerSettings.add_argument('--waitForReady', default=False, action='store_true', help='Wait for the participant to indicate they are ready for the next trial')
