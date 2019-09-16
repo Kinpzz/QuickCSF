@@ -27,7 +27,7 @@ class QuickCSFGenerator(QuickCSF.QuickCSFEstimator):
 	'''
 
 	def __init__(self,
-		size=100, orientation=None,
+		patchSize=2, circleDistance=7, orientation=None,
 		minContrast=.01, maxContrast=1.0, contrastResolution=24,
 		minFrequency=0.2, maxFrequency=36.0, frequencyResolution=20,
 		minPeakSensitivity=2, maxPeakSensitivity=1000, peakSensitivityResolution=28,
@@ -49,7 +49,8 @@ class QuickCSFGenerator(QuickCSF.QuickCSFEstimator):
 			])
 		)
 
-		self.size = size
+		self.patchSize = patchSize
+		self.circleDistance = circleDistance
 		self.orientation = orientation
 
 		if degreesToPixels is None:
@@ -57,7 +58,7 @@ class QuickCSFGenerator(QuickCSF.QuickCSFEstimator):
 		else:
 			self.degreesToPixels = degreesToPixels
 
-	def next(self):
+	def next(self, stimulusPosition):
 		stimulus = super().next()
 
 		if self.orientation is None:
@@ -65,9 +66,17 @@ class QuickCSFGenerator(QuickCSF.QuickCSFEstimator):
 		else:
 			orientation = self.orientation
 
-		return gaborPatch.ContrastGaborPatchImage(
-			size=self.degreesToPixels(self.size),
+		patchSize = self.degreesToPixels(self.patchSize)
+		patch = gaborPatch.ContrastGaborPatchImage(
+			size=patchSize,
 			contrast=stimulus.contrast,
 			frequency=1/self.degreesToPixels(1/stimulus.frequency),
 			orientation=orientation
 		)
+		fourPatchCircle = gaborPatch.fourPatchCircleImage(
+			circleDistance=self.degreesToPixels(self.circleDistance),
+			patchSize=patchSize,
+			stimulusPosition=stimulusPosition,
+			gaborPatch=patch
+		)
+		return fourPatchCircle

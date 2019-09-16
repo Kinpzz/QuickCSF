@@ -32,7 +32,7 @@ class QuickCSFWindow(QtWidgets.QMainWindow):
 		self.displayWidget = QtWidgets.QLabel(self)
 		self.displayWidget.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignVCenter)
 		self.displayWidget.setWordWrap(True)
-		self.displayWidget.setMargin(100)
+		#self.displayWidget.setMargin(100)
 		self.displayWidget.setStyleSheet(
 			'''
 				background: rgb(127, 127, 127);
@@ -107,10 +107,14 @@ class QuickCSFWindow(QtWidgets.QMainWindow):
 		logger.debug(f'Key released {event.key()}')
 		if event.key() == QtCore.Qt.Key_Space:
 			self.participantReady.emit()
-		elif event.key() in (QtCore.Qt.Key_4, QtCore.Qt.Key_Left):
-			self.participantResponse.emit(True)
-		elif event.key() in (QtCore.Qt.Key_6, QtCore.Qt.Key_Right):
-			self.participantResponse.emit(False)
+		elif event.key() in (QtCore.Qt.Key_W, QtCore.Qt.Key_Up):
+			self.participantResponse.emit('u')
+		elif event.key() in (QtCore.Qt.Key_S, QtCore.Qt.Key_Down):
+			self.participantResponse.emit('d')
+		elif event.key() in (QtCore.Qt.Key_A, QtCore.Qt.Key_Left):
+			self.participantResponse.emit('l')
+		elif event.key() in (QtCore.Qt.Key_D, QtCore.Qt.Key_Right):
+			self.participantResponse.emit('r')
 
 	def onNewState(self, stateName, data):
 		logger.debug(f'New state: {stateName} [{data}]')

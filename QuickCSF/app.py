@@ -132,7 +132,8 @@ def getSettings():
 	stimulusSettings.add_argument('-maxf', '--maxFrequency', type=float, default=36.0, help='The highest frequency value to measure (cycles per degree)')
 	stimulusSettings.add_argument('-fr', '--frequencyResolution', type=int, default=20, help='The number of frequency steps')
 
-	stimulusSettings.add_argument('--size', type=int, default=3, help='Gabor patch size in (degrees)')
+	stimulusSettings.add_argument('--patchSize', type=int, default=2, help='Gabor patch size in (degrees)')
+	stimulusSettings.add_argument('--circleDistance', type=int, default=7, help='The distance of gabor patch circle to center (degrees)')
 	stimulusSettings.add_argument('--orientation', type=float, help='Orientation of gabor patch (degrees). If unspecified, each trial will be random')
 
 	parameterSettings = parser.add_argument_group('Parameters')

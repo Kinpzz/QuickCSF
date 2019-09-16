@@ -57,8 +57,8 @@ class TimedState(State):
 class Trial_2AFC():
 	'''Represents a single trial'''
 
-	def __init__(self, stimulusOnFirst):
-		self.stimulusOnFirst = stimulusOnFirst
+	def __init__(self, stimulusPosition):
+		self.stimulusPosition = stimulusPosition
 		self.stimulus = {}
 		self.correct = None
 
@@ -118,14 +118,14 @@ class Controller_2AFC(QtCore.QObject):
 
 		totalTrialCount = trialsPerBlock * blockCount
 
-		stimOnFirstPool = [True, False] * math.ceil(totalTrialCount/2)
-		random.shuffle(stimOnFirstPool)
-		stimOnFirstPool = stimOnFirstPool[:totalTrialCount]
+		stimPosPool = ['u', 'd', 'l', 'r'] * math.ceil(totalTrialCount/4)
+		random.shuffle(stimPosPool)
+		stimPosPool = stimPosPool[:totalTrialCount]
 
 		logger.debug(f'Building {blockCount} blocks of {trialsPerBlock} trials each')
 		for b in range(blockCount):
 			for i in range(trialsPerBlock):
-				trials.append(Trial_2AFC(stimOnFirstPool.pop()))
+				trials.append(Trial_2AFC(stimPosPool.pop()))
 
 		random.shuffle(trials)
 
@@ -206,14 +206,16 @@ class Controller_2AFC(QtCore.QObject):
 		if self.checkState(['INSTRUCTIONS', 'WAIT_FOR_READY', 'BREAKING', 'FINISHED']):
 			self.state.finished = True
 
-	def onParticipantResponse(self, selectedFirstOption):
+	def onParticipantResponse(self, selectedPosition):
 		if self.checkState('WAIT_FOR_RESPONSE'):
 			trial = self.getCurrentTrial()
-			trial.correct = (selectedFirstOption == trial.stimulusOnFirst)
+			logger.debug('S'+selectedPosition)
+			logger.debug('T'+trial.stimulusPosition)
+			trial.correct = (selectedPosition == trial.stimulusPosition)
 			self.stimulusGenerator.markResponse(trial.correct)
 			self.state.finished = True
 		# if user does not make a reponse in limited time, the anwser will be regarded as False
-		if self.checkState('FEEDBACK') and selectedFirstOption is None:
+		if self.checkState('FEEDBACK') and selectedPosition is None:
 			trial = self.getCurrentTrial()
 			trial.correct = False
 			self.stimulusGenerator.markResponse(trial.correct)
@@ -231,18 +233,18 @@ class Controller_2AFC(QtCore.QObject):
 		self.state.update()
 		if self.state.isFinished():
 			if self.checkState(['INSTRUCTIONS', 'BREAKING']):
-				if len(self.blocks[0]) == 0:
+				if len(self.blocks[0]) == 0: # remove empty block
 					self.blocks.pop(0)
 
 				trial = self.getCurrentTrial()
 				if trial is not None:
-					trial.stimulus = self.stimulusGenerator.next()
+					trial.stimulus = self.stimulusGenerator.next(trial.stimulusPosition)
 
 			elif self.checkState('FEEDBACK'):
 				self.blocks[0].pop(0)
 				trial = self.getCurrentTrial()
 				if trial is not None:
-					trial.stimulus = self.stimulusGenerator.next()
+					trial.stimulus = self.stimulusGenerator.next(trial.stimulusPosition)
 
 			nextStateName = self.state.getNextStateName()
 			if nextStateName is None:

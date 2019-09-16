@@ -3,7 +3,24 @@
 
 import math
 
-from qtpy import QtGui
+from qtpy import QtGui, QtCore
+
+def maskPatch(patchSize, patch):
+	outPatch = QtGui.QImage(patchSize+10, patchSize+10, QtGui.QImage.Format_ARGB32)
+	outPatch.fill(QtCore.Qt.transparent)
+
+	brush = QtGui.QBrush(patch)         # Create texture brush
+	painter = QtGui.QPainter(outPatch)  # Paint the output image
+	painter.setBrush(brush)             # Use the image texture brush
+	painter.setPen(QtGui.QColor(0,0,0)) # Don't draw an outline
+	painter.setRenderHint(QtGui.QPainter.Antialiasing, True) # Use AA
+	painter.drawEllipse(2, 2, patchSize, patchSize) # Actually draw the circle
+	painter.end()
+
+	return outPatch
+
+
+
 
 class GaborPatchImage(QtGui.QImage):
 	'''Create a gabor patch'''
@@ -105,3 +122,47 @@ class ContrastGaborPatchImage(GaborPatchImage):
 
 		super().__init__(color1=color1, color2=color2, *args, **kwargs)
 
+class fourPatchCircleImage(QtGui.QImage):
+	def __init__(self, circleDistance, patchSize, stimulusPosition, gaborPatch):
+		radius = patchSize / 2
+		margin = radius / 2
+		size = (circleDistance+radius+margin) * 2
+		super().__init__(size, size, QtGui.QImage.Format_ARGB32)
+
+		center = size / 2
+		lower = int(margin)
+		middle = int(center-radius)
+		upper = int(size-2*radius-2*margin)
+		# left up corner: [col, row]
+		self.circleCorner = {
+			'l': [lower, middle],
+			'r': [upper, middle],
+			'u': [middle, lower],
+			'd': [middle, upper]
+		}
+
+		self.size = size
+		self.patchSize = patchSize
+		self.radius = radius
+		self.stimulusPosition = stimulusPosition
+		self.gaborPatch = gaborPatch
+
+		self.fill(QtGui.qRgba(127, 127, 127, 255))
+		self.setPixels()
+
+	def setPixels(self):
+		# draw empty circle
+		painter = QtGui.QPainter(self)
+		painter.setPen(QtGui.QColor(0,0,0))
+		painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+		for key, value in self.circleCorner.items():
+			if key != self.stimulusPosition:
+				painter.drawEllipse(value[0], value[1], self.patchSize, self.patchSize)
+		painter.end()
+		# draw gabor patch circle
+		x0 = self.circleCorner[self.stimulusPosition][0]
+		y0 = self.circleCorner[self.stimulusPosition][1]
+		gaborPatch = maskPatch(self.patchSize, self.gaborPatch)
+		for i, x in enumerate(range(x0, int(x0+self.patchSize)+5)):
+			for j, y in enumerate(range(y0, int(y0+self.patchSize)+5)):
+				self.setPixel(x,y, gaborPatch.pixel(i,j))
