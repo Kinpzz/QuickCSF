@@ -49,11 +49,6 @@ class QuickCSFWindow(QtWidgets.QMainWindow):
 		self.finishedText = 'All done!'
 
 		self.setCentralWidget(self.displayWidget)
-		self.sounds = {
-			'tone': QtMultimedia.QSound(assets.locate('tone.wav')),
-			'good': QtMultimedia.QSound(assets.locate('good.wav')),
-			'bad': QtMultimedia.QSound(assets.locate('bad.wav')),
-		}
 
 	def showInstructions(self):
 		self.displayWidget.setText(self.instructionsText)
@@ -66,11 +61,9 @@ class QuickCSFWindow(QtWidgets.QMainWindow):
 
 	def showStimulus(self, stimulus):
 		self.displayWidget.setPixmap(QtGui.QPixmap.fromImage(stimulus))
-		self.sounds['tone'].play()
 
 	def showNonStimulus(self):
 		self.showBlank()
-		self.sounds['tone'].play()
 
 	def showMask(self):
 		self.displayWidget.setText('')
@@ -84,10 +77,8 @@ class QuickCSFWindow(QtWidgets.QMainWindow):
 			self.participantResponse.emit(None)
 		# if good:
 		# 	self.displayWidget.setText('Good!')
-		# 	self.sounds['good'].play()
 		# else:
 		# 	self.displayWidget.setText('Wrong')
-		# 	self.sounds['bad'].play()
 
 	def showResponsePrompt(self):
 		self.displayWidget.setText(self.responseText)
