@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*
 '''Simulate a QuickCSF experiment'''
 
+import sys
 import logging
 import argparse
 import time
@@ -236,15 +237,15 @@ if __name__ == '__main__':
 	parameterSettings.add_argument('-minps', '--minPeakSensitivity', type=float, default=2.0, help='The lower bound of peak sensitivity value (>1.0)')
 	parameterSettings.add_argument('-maxps', '--maxPeakSensitivity', type=float, default=1000.0, help='The upper bound of peak sensitivity value')
 	parameterSettings.add_argument('-psr', '--peakSensitivityResolution', type=int, default=28, help='The number of peak sensitivity steps')
-	
+
 	parameterSettings.add_argument('-minpf', '--minPeakFrequency', type=float, default=.2, help='The lower bound of peak frequency value (>0)')
 	parameterSettings.add_argument('-maxpf', '--maxPeakFrequency', type=float, default=20.0, help='The upper bound of peak frequency value')
 	parameterSettings.add_argument('-pfr', '--peakFrequencyResolution', type=int, default=21, help='The number of peak frequency steps')
-	
+
 	parameterSettings.add_argument('-minb', '--minBandwidth', type=float, default=1.0, help='The lower bound of bandwidth value')
 	parameterSettings.add_argument('-maxb', '--maxBandwidth', type=float, default=10.0, help='The upper bound of bandwidth value')
 	parameterSettings.add_argument('-br', '--bandwidthResolution', type=int, default=21, help='The number of bandwidth steps')
-	
+
 	parameterSettings.add_argument('-mind', '--minLogDelta', type=float, default=.02, help='The lower bound of logdelta value')
 	parameterSettings.add_argument('-maxd', '--maxLogDelta', type=float, default=2.0, help='The upper bound of logdelta value')
 	parameterSettings.add_argument('-dr', '--logDeltaResolution', type=int, default=21, help='The number of logdelta steps')
@@ -253,7 +254,7 @@ if __name__ == '__main__':
 	if settings['trials'] is None:
 		from qtpy import QtWidgets
 		from . import ui
-		app = QtWidgets.QApplication()
+		app = QtWidgets.QApplication(sys.argv)
 		settings = ui.getSettings(parser, settings, ['trials'])
 
 	if settings is not None:

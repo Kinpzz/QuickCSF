@@ -28,7 +28,7 @@ from . import plot
 
 logger = logging.getLogger('QuickCSF.app')
 
-app = QtWidgets.QApplication()
+app = QtWidgets.QApplication(sys.argv)
 app.setApplicationName('QuickCSF')
 mainWindow = None
 settings = None
@@ -38,7 +38,7 @@ def _onFinished(results):
 	logger.debug('Writing output file: ' + str(outputFile.resolve()))
 
 	fileExists = outputFile.exists()
-	timeStamp = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+	timeStamp = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
 	plotPath = pathlib.Path(settings['plotPath'])
 	if not plotPath.exists():
 		plotPath.mkdir(parents=True)
@@ -64,7 +64,6 @@ def _start():
 	def onStateTransition(state, data):
 		if state == 'FINISHED':
 			_onFinished(data)
-
 	logger.debug('Showing main window')
 
 	if settings['instructionsFile'] is not None and settings['instructionsFile'] != '':
@@ -82,6 +81,7 @@ def _start():
 
 	mainWindow.participantReady.connect(controller.onParticipantReady)
 	mainWindow.participantResponse.connect(controller.onParticipantResponse)
+	mainWindow.participantExit.connect(_exit)
 
 	controller.stateTransition.connect(mainWindow.onNewState)
 	controller.stateTransition.connect(onStateTransition)
@@ -89,10 +89,15 @@ def _start():
 	QtCore.QTimer.singleShot(0, controller.start)
 	mainWindow.showFullScreen()
 
+def _exit():
+	logger.info('User exit app')
+	app.quit()
+	sys.exit()
+
 def run(configuredSettings=None):
 	'''Start the QuickCSF app'''
 	global settings
-	
+
 	settings = configuredSettings
 
 	ui.popupUncaughtExceptions()
@@ -140,15 +145,15 @@ def getSettings():
 	parameterSettings.add_argument('-minps', '--minPeakSensitivity', type=float, default=2.0, help='The lower bound of peak sensitivity value (>1.0)')
 	parameterSettings.add_argument('-maxps', '--maxPeakSensitivity', type=float, default=1000.0, help='The upper bound of peak sensitivity value')
 	parameterSettings.add_argument('-psr', '--peakSensitivityResolution', type=int, default=28, help='The number of peak sensitivity steps')
-	
+
 	parameterSettings.add_argument('-minpf', '--minPeakFrequency', type=float, default=.2, help='The lower bound of peak frequency value (>0)')
 	parameterSettings.add_argument('-maxpf', '--maxPeakFrequency', type=float, default=20.0, help='The upper bound of peak frequency value')
 	parameterSettings.add_argument('-pfr', '--peakFrequencyResolution', type=int, default=21, help='The number of peak frequency steps')
-	
+
 	parameterSettings.add_argument('-minb', '--minBandwidth', type=float, default=1.0, help='The lower bound of bandwidth value')
 	parameterSettings.add_argument('-maxb', '--maxBandwidth', type=float, default=10.0, help='The upper bound of bandwidth value')
 	parameterSettings.add_argument('-br', '--bandwidthResolution', type=int, default=21, help='The number of bandwidth steps')
-	
+
 	parameterSettings.add_argument('-mind', '--minLogDelta', type=float, default=.02, help='The lower bound of logdelta value')
 	parameterSettings.add_argument('-maxd', '--maxLogDelta', type=float, default=2.0, help='The upper bound of logdelta value')
 	parameterSettings.add_argument('-dr', '--logDeltaResolution', type=int, default=21, help='The number of logdelta steps')
@@ -170,7 +175,7 @@ def main():
 		if not (settings['Parameters']['minPeakFrequency'] >= settings['Stimuli']['minFrequency'] and settings['Parameters']['maxPeakFrequency'] <= settings['Stimuli']['maxFrequency']):
 			raise ValueError("Please increase the range of frequency space or decrease the range of peak frequency space.")
 
-		logPath = pathlib.Path(settings['outputFile']).parent
+		logPath = pathlib.Path(settings['outputFile']).parent / 'log'
 		log.startLog(settings['sessionID'], logPath)
 		run(settings)
 

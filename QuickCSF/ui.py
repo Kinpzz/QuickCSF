@@ -10,8 +10,6 @@ import numpy
 from qtpy import QtCore, QtGui, QtWidgets, QtMultimedia
 import argparseqt.gui
 
-from . import assets
-
 logger = logging.getLogger(__name__)
 
 DEFAULT_INSTRUCTIONS = '''For this test, you will be presented with two options - one will be blank, and the other will be a striped circle.\n\n
@@ -24,6 +22,7 @@ If you are uncertain, make a guess.\n\n\nPress [ SPACEBAR ] to start.'''
 class QuickCSFWindow(QtWidgets.QMainWindow):
 	'''The main window for QuickCSF.app'''
 
+	participantExit = QtCore.Signal()
 	participantReady = QtCore.Signal()
 	participantResponse = QtCore.Signal(object)
 
@@ -42,7 +41,7 @@ class QuickCSFWindow(QtWidgets.QMainWindow):
 		)
 
 		self.instructionsText = instructions if instructions is not None else DEFAULT_INSTRUCTIONS
-		
+
 		self.breakText = 'Good job - it\'s now time for a break!\n\nWhen you are ready to continue, press the [ SPACEBAR ].'
 		self.readyText = 'Ready?'
 		self.responseText = '?'
@@ -70,15 +69,10 @@ class QuickCSFWindow(QtWidgets.QMainWindow):
 
 	def showBlank(self):
 		self.displayWidget.setText('')
-		self.displayWidget.setPixmap(None)
 
 	def giveFeedback(self, good):
 		if good is None:
 			self.participantResponse.emit(None)
-		# if good:
-		# 	self.displayWidget.setText('Good!')
-		# else:
-		# 	self.displayWidget.setText('Wrong')
 
 	def showResponsePrompt(self):
 		self.displayWidget.setText(self.responseText)
@@ -91,13 +85,15 @@ class QuickCSFWindow(QtWidgets.QMainWindow):
 		for key,value in results.items():
 			if isinstance(value, float):
 				outputDisplay += f'\n{key} = {value:.4f}'
-				
+
 		self.displayWidget.setText(outputDisplay)
 
 	def keyReleaseEvent(self, event):
 		logger.debug(f'Key released {event.key()}')
 		if event.key() == QtCore.Qt.Key_Space:
 			self.participantReady.emit()
+		elif event.key() == QtCore.Qt.Key_Escape:
+			self.participantExit.emit()
 		elif event.key() in (QtCore.Qt.Key_W, QtCore.Qt.Key_Up):
 			self.participantResponse.emit('u')
 		elif event.key() in (QtCore.Qt.Key_S, QtCore.Qt.Key_Down):
@@ -134,7 +130,7 @@ def getSettings(parser, settings, requiredFields=[]):
 	dialog.exec_()
 	if dialog.result() == QtWidgets.QDialog.Accepted:
 		settings = dialog.getValues()
-		
+
 		for field in requiredFields:
 			if settings[field] == None:
 				QtWidgets.QMessageBox.critical(

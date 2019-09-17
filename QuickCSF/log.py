@@ -5,9 +5,9 @@ import pathlib
 from datetime import datetime
 
 
-def startLog(sessionID=None, filepath='data'):
+def startLog(sessionID=None, filepath='data/log'):
 	'''Setup file logging to a file with the session ID and timestamp as the filename'''
-	
+
 	pathlib.Path(pathlib.Path(filepath)).mkdir(parents=True, exist_ok=True)
 	if sessionID is None or sessionID == '':
 		sessionID = 'NO-ID'
@@ -20,7 +20,7 @@ def startLog(sessionID=None, filepath='data'):
 
 	logger = logging.getLogger('QuickCSF')
 	logger.setLevel(logging.DEBUG)
-	
+
 	fh = logging.FileHandler(path.resolve())
 
 	fh.setLevel(logging.DEBUG)
